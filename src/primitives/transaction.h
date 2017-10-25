@@ -345,6 +345,8 @@ public:
         return a.hash != b.hash;
     }
 
+    bool ReplayProtected() const;
+
     std::string ToString() const;
 
     bool HasWitness() const

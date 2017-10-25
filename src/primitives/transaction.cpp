@@ -113,3 +113,17 @@ std::string CTransaction::ToString() const
         str += "    " + tx_out.ToString() + "\n";
     return str;
 }
+
+bool CTransaction::ReplayProtected() const
+{
+    // hex("You're protected lol") = 596f752772652070726f746563746564206c6f6c
+    static const CScript noReplay =
+        CScript() << OP_RETURN << ParseHex("596f752772652070726f746563746564206c6f6c");
+
+    for (const auto& txout : this->vout) {
+        if (txout.scriptPubKey == noReplay) {
+            return true;
+        }
+    }
+    return false;
+}
