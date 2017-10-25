@@ -2970,6 +2970,11 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
         }
     }
 
+    bool fReplayProtect = false;
+    if (nHeight > consensusParams.LOLHeight) {
+        fReplayProtect = true;
+    }
+
     // Validation for witness commitments.
     // * We compute the witness hash (which is the hash including witnesses) of all the block's transactions, except the
     //   coinbase (where 0x0000....0000 is used instead).
@@ -3004,6 +3009,12 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
             if (tx->HasWitness()) {
                 return state.DoS(100, false, REJECT_INVALID, "unexpected-witness", true, strprintf("%s : unexpected witness data found", __func__));
             }
+        }
+    }
+
+    for (const auto& tx : block.vtx) {
+        if (fReplayProtect && tx->ReplayProtected()) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-rptx", false, "replay-protected tx in block");
         }
     }
 
